@@ -89,7 +89,7 @@ jobs:
         working-directory: ./cluster
         run: |-
           git fetch
-          git rebase origin/${{ inputs.release }}
+          git rebase origin/${{ inputs.release }} || true
           git push origin ${{ inputs.release }}
 
       - if: ${{ inputs.env != 'prod' }}
