@@ -89,7 +89,16 @@ jobs:
         working-directory: ./cluster
         run: |-
           git fetch
-          git rebase origin/${{ inputs.release }}
+          branch=${1}
+          existed_in_local=$(git branch --list ${branch})
+
+          if [[ -z ${existed_in_local} ]]; then
+              echo 0
+          else
+              echo 1
+          fi
+          
+      
           git push origin/${{ inputs.release }}
 
       - if: ${{ inputs.env != 'prod' }}
