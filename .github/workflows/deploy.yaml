@@ -71,12 +71,15 @@ jobs:
         working-directory: ./cluster
         run: |-
           target=${{ inputs.release }}
-          exists=$(git ls-remote --heads origin $target)
+          exists=$(git ls-remote --heads origin $target | wc -l)
+          echo $exits
           if [ $exists -eq 1 ]
           then
+            echo "exists"
             git fetch
             git checkout origin/$target
           else
+            echo "not exists"
             git checkout -b ${{ inputs.release }}
             git push origin $target -u
           fi
