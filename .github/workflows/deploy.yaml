@@ -64,11 +64,11 @@ jobs:
         working-directory: ./code
         run: skaffold render --profile=${{ inputs.env }} --build-artifacts=../artifact.json --offline --output ../cluster/${{ inputs.app_name }}.yaml
 
-      - if: ${{ inputs.env == 'stage' }}
+      - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
         run: git checkout -b ${{ inputs.app_name }}
 
-      - name: Commit Cluster Dev
+      - name: Commit Cluster
         working-directory: ./cluster
         run: |-
           git config user.name "source-monkey"
