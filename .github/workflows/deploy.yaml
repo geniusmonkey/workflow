@@ -1,0 +1,93 @@
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      org_name:
+        required: true
+        type: string
+      project:
+        required: true
+        type: string
+      email: 
+        required: true
+        type: string
+      env:
+        required: true
+        type: string
+      app_name: 
+        required: true
+        type: string
+    secrets:
+      gcp_token:
+        required: true
+      github_auth:
+        required: true
+jobs:
+  build:
+    name: Deploy ${{ inputs.env }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          path: code
+
+      - name: Checkout Cluster
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ inputs.org_name }}/cluster-${{ inputs.env }}
+          token: ${{ secrets.github_auth }}
+          path: cluster
+          ref: master
+
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: ${{ inputs.project }}
+          service_account_key: ${{ secrets.gcp_token }}
+          export_default_credentials: true
+
+      - name: Google GCR Auth
+        run: gcloud auth configure-docker --quiet
+
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          kubectl: '1.20.8'
+          kustomize: '4.4.1'
+          skaffold: '1.36.0'
+
+      - name: Download artifact details
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact
+
+      - name: Skaffold Render
+        working-directory: ./code
+        run: skaffold render --profile=${{ inputs.env }} --build-artifacts=../artifact.json --offline --output ../cluster/${{ inputs.app_name }}.yaml
+
+      - if: ${{ inputs.env == 'stage' }}
+        working-directory: ./cluster
+        run: git checkout -b ${{ inputs.app_name }}
+
+      - name: Commit Cluster Dev
+        working-directory: ./cluster
+        run: |-
+          git config user.name "source-monkey"
+          git config user.email ${{ inputs.email }}
+          git pull origin master
+          
+          cat << EOF > ../commit.txt
+          Updated ${{ inputs.app_name }} ${{ inputs.env }}
+          This commit deploys ${{ inputs.app_name }} with commit ${GITHUB_SHA} to ${{ inputs.env }} 
+          EOF
+          
+          git add .
+          git commit -F ../commit.txt
+          git push origin master
+
+      - if: ${{ inputs.env == 'stage' }}
+        working-directory: ./cluster
+        run: git push origin ${{ inputs.app_name }} --force
+
+      - if: ${{ inputs.env != 'stage' }}
+        working-directory: ./cluster
+        run: git push origin master
