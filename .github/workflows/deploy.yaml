@@ -88,6 +88,7 @@ jobs:
         working-directory: ./cluster
         run: |-
           git fetch
+          git status
           git rebase origin/master
 
       - name: Commit Cluster
