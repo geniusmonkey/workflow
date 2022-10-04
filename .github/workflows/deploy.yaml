@@ -69,7 +69,23 @@ jobs:
 
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
-        run: git checkout -b ${{ inputs.release }}
+        run: |-
+          target=${{ inputs.release }}
+          exists=$(git ls-remote --heads origin $target)
+          if [ $exists -eq 1 ]
+          then
+            git fetch
+            git checkout origin/$target
+          else
+            git checkout -b ${{ inputs.release }}
+            git push origin $target -u
+          fi
+        
+      - if: ${{ inputs.env != 'prod' }}
+        working-directory: ./cluster
+        run: |-
+          git fetch
+          git rebase origin/master
 
       - name: Commit Cluster
         working-directory: ./cluster
@@ -88,10 +104,9 @@ jobs:
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
         run: |-
-          set +e
           git fetch
-          git rebase origin/${{ inputs.release }} || true
-          git push origin ${{ inputs.release }}
+          git rebase origin/${{ inputs.release }}
+          git push
 
       - if: ${{ inputs.env != 'prod' }}
         working-directory: ./cluster
