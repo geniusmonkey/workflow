@@ -77,9 +77,6 @@ jobs:
           git config user.name "source-monkey"
           git config user.email ${{ inputs.email }}
           
-          git fetch origin
-          git rebase origin/master
-          
           cat << EOF > ../commit.txt
           Updated ${{ inputs.app_name }} ${{ inputs.env }}
           This commit deploys ${{ inputs.app_name }} with commit ${GITHUB_SHA} to ${{ inputs.env }} 
@@ -97,4 +94,7 @@ jobs:
 
       - if: ${{ inputs.env != 'prod' }}
         working-directory: ./cluster
-        run: git push origin master
+        run: |-
+          git fetch
+          git rebase origin/master
+          git push origin master
