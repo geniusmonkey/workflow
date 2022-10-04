@@ -92,7 +92,7 @@ jobs:
           branch=${1}
           existed_in_local=$(git branch --list ${branch})
 
-          if [[ -z ${existed_in_local} ]]; then
+          if [[ z ${existed_in_local} ]]; then
               git rebase origin/${{ inputs.release }}
           fi
           
