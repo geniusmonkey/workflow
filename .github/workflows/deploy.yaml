@@ -69,7 +69,7 @@ jobs:
 
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
-        run: git checkout -b ${{ input.release }}
+        run: git checkout -b ${{ inputs.release }}
 
       - name: Commit Cluster
         working-directory: ./cluster
