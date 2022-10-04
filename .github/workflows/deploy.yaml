@@ -66,11 +66,12 @@ jobs:
 
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
-        run: git checkout -b ${{ inputs.app_name }}
+        run: git checkout -b $GITHUB_HEAD_REF
 
       - name: Commit Cluster
         working-directory: ./cluster
         run: |-
+          echo $GITHUB_HEAD_REF
           git config user.name "source-monkey"
           git config user.email ${{ inputs.email }}
           git pull origin master
@@ -82,12 +83,13 @@ jobs:
           
           git add .
           git commit -F ../commit.txt
-          git push origin master
 
-      - if: ${{ inputs.env == 'stage' }}
+      - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
-        run: git push origin ${{ inputs.app_name }} --force
+        run: |-
+          git pull origin $GITHUB_HEAD_REF
+          git push origin $GITHUB_HEAD_REF
 
-      - if: ${{ inputs.env != 'stage' }}
+      - if: ${{ inputs.env != 'prod' }}
         working-directory: ./cluster
         run: git push origin master
