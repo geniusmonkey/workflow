@@ -17,6 +17,9 @@ on:
       app_name: 
         required: true
         type: string
+      release: 
+        required: true
+        type: string
     secrets:
       gcp_token:
         required: true
@@ -66,15 +69,16 @@ jobs:
 
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
-        run: git checkout -b $GITHUB_HEAD_REF
+        run: git checkout -b ${{ input.release }}
 
       - name: Commit Cluster
         working-directory: ./cluster
         run: |-
-          echo $GITHUB_HEAD_REF
           git config user.name "source-monkey"
           git config user.email ${{ inputs.email }}
-          git pull origin master
+          
+          git fetch origin
+          git rebase origin/master
           
           cat << EOF > ../commit.txt
           Updated ${{ inputs.app_name }} ${{ inputs.env }}
@@ -87,8 +91,9 @@ jobs:
       - if: ${{ inputs.env == 'prod' }}
         working-directory: ./cluster
         run: |-
-          git pull origin $GITHUB_HEAD_REF
-          git push origin $GITHUB_HEAD_REF
+          git fetch
+          git rebase origin/${{ inputs.release }}
+          git push origin/${{ inputs.release }}
 
       - if: ${{ inputs.env != 'prod' }}
         working-directory: ./cluster
