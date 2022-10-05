@@ -74,7 +74,7 @@ jobs:
           then
             echo "exists"
             git fetch
-            git checkout origin/$target
+            git checkout $target
           else
             echo "not exists"
             git checkout -b ${{ inputs.release }}
