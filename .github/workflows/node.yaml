@@ -4,7 +4,7 @@ on:
     inputs:
       version:
         required: true
-        type: number
+        type: string
       project:
         required: true
         type: string
