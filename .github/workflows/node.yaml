@@ -37,6 +37,9 @@ jobs:
 
       - name: Google GCR Auth
         run: gcloud auth configure-docker --quiet
+        
+      - name: Install Deps
+        run: yarn install
 
       - name: Publish
         run: skaffold build --file-output=artifact.json
