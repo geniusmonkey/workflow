@@ -63,11 +63,8 @@ jobs:
         with:
           name: build-artifact
 
-      - name: Skaffold Render
-        working-directory: ./code
-        run: skaffold render --profile=${{ inputs.env }} --build-artifacts=../artifact.json --offline --output ../cluster/${{ inputs.app_name }}.yaml
-
       - if: ${{ inputs.env == 'prod' }}
+        name: Prod Branch
         working-directory: ./cluster
         run: |-
           target=${{ inputs.release }}
@@ -85,11 +82,16 @@ jobs:
           fi
         
       - if: ${{ inputs.env != 'prod' }}
+        name: Master Update
         working-directory: ./cluster
         run: |-
           git fetch
           git status
           git rebase origin/master
+          
+      - name: Skaffold Render
+        working-directory: ./code
+        run: skaffold render --profile=${{ inputs.env }} --build-artifacts=../artifact.json --offline --output ../cluster/${{ inputs.app_name }}.yaml
 
       - name: Commit Cluster
         working-directory: ./cluster
